@@ -9,7 +9,6 @@ const passport = require('passport');
 require('dotenv').config();
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const helloRouter = require('./routes/hello');
 require('./utils/passportConfig')(passport);
@@ -39,11 +38,7 @@ app.use(authRouter)
 app.use('/auth', authRouter);
 
 // Protected routes
-// app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter);
 app.use(passport.authenticate('jwt', { session: false }));
-
-app.use(usersRouter);
-app.use('/users', usersRouter);
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {
