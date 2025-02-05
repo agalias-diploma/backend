@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(indexRouter)
 app.use('/', indexRouter);
 app.use(helloRouter)
-app.use('/hellp', indexRouter);
+app.use('/hello', indexRouter);
 app.use(authRouter)
 app.use('/auth', authRouter);
 
