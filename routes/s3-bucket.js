@@ -1,20 +1,13 @@
-const AWS = require('aws-sdk');
+const express = require('express');
+const passport = require('passport');
+const { getUserTemplates, selectUserTemplate } = require('../controllers/s3-bucket.controller');
 
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
+const router = express.Router();
 
-router.get('/s3-files', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  try {
-    const params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-    };
-    const data = await s3.listObjectsV2(params).promise();
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to retrieve files from S3' });
-  }
-});
+// GET user templates
+router.get('/s3-files', passport.authenticate('jwt', { session: false }), getUserTemplates);
+
+// POST select template
+router.post('/s3-select-template', passport.authenticate('jwt', { session: false }), selectUserTemplate);
+
+module.exports = router;

@@ -11,6 +11,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const helloRouter = require('./routes/hello');
+const s3Routes = require('./routes/s3-bucket');
 require('./utils/passportConfig')(passport);
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(helloRouter)
 app.use('/hello', indexRouter);
 app.use(authRouter)
 app.use('/auth', authRouter);
+app.use('/api', s3Routes);
 
 // Protected routes
 app.use(passport.authenticate('jwt', { session: false }));
@@ -47,13 +49,12 @@ app.use((req, res, next) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    // render the error page
-    res.status(err.status || 500);
-    res.render('error');
+    res.status(err.status || 500).json({
+        error: {
+            message: err.message || 'Internal Server Error',
+            status: err.status || 500,
+        }
+    });
 });
 
 module.exports = app;

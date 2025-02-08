@@ -1,7 +1,7 @@
 const GoogleStrategy = require('passport-google-oauth2');
 const { ExtractJwt, Strategy: JwtStrategy } = require('passport-jwt');
 const AuthUser = require('../models/auth');
-const { createUserFolder } = require('../utils/s3'); // Import S3 function
+const { createUserFolder } = require('../utils/createUserFolderAWS'); // Import S3 function
 
 module.exports = (passport) => {
   passport.use(
