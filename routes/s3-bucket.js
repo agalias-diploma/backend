@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('passport');
-const { getUserTemplates, selectUserTemplate } = require('../controllers/s3-bucket.controller');
+const { getUserTemplates, selectUserTemplate, checkForNewFiles } = require('../controllers/s3-bucket.controller');
 
 const router = express.Router();
 
@@ -9,5 +9,8 @@ router.get('/s3-files', passport.authenticate('jwt', { session: false }), getUse
 
 // POST select template
 router.post('/s3-select-template', passport.authenticate('jwt', { session: false }), selectUserTemplate);
+
+// GET check for new files
+router.get('/check-for-new-files', passport.authenticate('jwt', { session: false }), checkForNewFiles); // New route for checking new files
 
 module.exports = router;
