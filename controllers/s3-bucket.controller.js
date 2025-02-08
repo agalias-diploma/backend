@@ -9,7 +9,7 @@ const s3 = new AWS.S3({
 const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
 // Get all user templates from S3
-exports.getUserTemplates = async (req, res) => {
+const getUserTemplates = async (req, res) => {
   try {
     if (!req.user || !req.user.email) {
       return res.status(400).json({ error: 'User email not found' });
@@ -39,7 +39,7 @@ exports.getUserTemplates = async (req, res) => {
 };
 
 // User selects a template
-exports.selectUserTemplate = async (req, res) => {
+const selectUserTemplate = async (req, res) => {
     try {
       const { templateKey } = req.body;
   
@@ -55,3 +55,7 @@ exports.selectUserTemplate = async (req, res) => {
     }
   };
   
+module.exports = {
+    getUserTemplates,
+    selectUserTemplate,
+};
