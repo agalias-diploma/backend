@@ -11,6 +11,6 @@ router.get('/s3-files', passport.authenticate('jwt', { session: false }), getUse
 router.post('/s3-select-template', passport.authenticate('jwt', { session: false }), selectUserTemplate);
 
 // GET check for new files
-router.get('/check-for-new-files', passport.authenticate('jwt', { session: false }), checkForNewFiles); // New route for checking new files
+router.get('/s3-check-for-new-files', passport.authenticate('jwt', { session: false }), checkForNewFiles);
 
 module.exports = router;
