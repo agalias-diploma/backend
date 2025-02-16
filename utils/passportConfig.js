@@ -47,6 +47,7 @@ module.exports = (passport) => {
       async (jwtPayload, done) => {
         try {
           const { user } = jwtPayload;
+          console.log(jwtPayload)
           done(null, user);
         } catch (err) {
           done(err, false);

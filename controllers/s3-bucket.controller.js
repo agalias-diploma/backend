@@ -38,23 +38,6 @@ const getUserTemplates = async (req, res) => {
   }
 };
 
-// User selects a template
-const selectUserTemplate = async (req, res) => {
-    try {
-      const { templateKey } = req.body;
-  
-      if (!templateKey) {
-        return res.status(400).json({ error: 'Template key is required' });
-      }
-  
-      req.session.selectedTemplate = templateKey;
-      res.json({ selectedTemplate: templateKey });
-    } catch (error) {
-      console.error('Error selecting template:', error);
-      res.status(500).json({ error: 'Failed to select template' });
-    }
-  };
-
 // Function to check if new files have been added to the user's folder in S3
 const checkForNewFiles = async (req, res) => {
   try {
@@ -95,9 +78,44 @@ const checkForNewFiles = async (req, res) => {
     res.status(500).json({ error: 'Failed to check for new files' });
   }
 };
-  
-module.exports = {
-    getUserTemplates,
-    selectUserTemplate,
-    checkForNewFiles,
+
+const getUserFileContent = async (req, res) => {
+  console.log("⚡ Received GET /api/s3-file-content request");
+  console.log("🔹 Query Params:", req.query);
+  console.log("🔹 Headers:", req.headers);
+  console.log("🔹 User:", req.user); // Ensure user is being set correctly
+
+  try {
+    const { fileKey } = req.query;
+
+    if (!fileKey) {
+      console.error("Missing fileKey in request");
+      return res.status(400).json({ error: "File key is required" });
+    }
+
+    const userFolder = req.user.email.split("@")[0] + "/";
+    if (!fileKey.startsWith(userFolder)) {
+      console.error("Unauthorized file access attempt:", fileKey);
+      return res.status(403).json({ error: "Access denied: Unauthorized file access" });
+    }
+
+    // Fetch file from S3
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+    };
+    const fileData = await s3.getObject(params).promise();
+
+    console.log("Fetched file data:", fileData);
+
+    const fileContent = fileData.Body.toString("utf-8");
+
+    res.setHeader("Content-Type", "application/json");
+    res.send(fileContent);
+  } catch (error) {
+    console.error("Error fetching file content:", error);
+    res.status(500).json({ error: "Failed to fetch file content" });
+  }
 };
+
+module.exports = { getUserTemplates, checkForNewFiles, getUserFileContent };

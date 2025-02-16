@@ -28,6 +28,8 @@ router.get(
         { expiresIn: '1h' }
       );
 
+      console.log(token); // delete lates!
+
       // Redirect to the frontend with the token
       res.redirect(`${FRONTEND_URL}?token=${token}`);
     } catch (error) {
