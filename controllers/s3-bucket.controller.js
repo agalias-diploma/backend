@@ -60,12 +60,10 @@ const checkForNewFiles = async (req, res) => {
       return file.LastModified > latest ? file.LastModified : latest;
     }, new Date(0));
 
-    // Check if the last modified time is different from the previously saved value (you would store it in DB or session)
-    // For now, you can return the last modified timestamp as a signal of new files.
-    const lastKnownModified = req.user.lastModified || new Date(0); // Placeholder for actual logic to get last known timestamp
+    const lastKnownModified = req.user.lastModified || new Date(0);
     
     if (lastModified > lastKnownModified) {
-      // Save the new last modified timestamp for the user (could store in DB or session)
+      // Save the new last modified timestamp for the user
       req.user.lastModified = lastModified;
       
       return res.json({ hasNewFiles: true, lastModified });
@@ -80,11 +78,6 @@ const checkForNewFiles = async (req, res) => {
 };
 
 const getUserFileContent = async (req, res) => {
-  console.log("⚡ Received GET /api/s3-file-content request");
-  console.log("🔹 Query Params:", req.query);
-  console.log("🔹 Headers:", req.headers);
-  console.log("🔹 User:", req.user); // Ensure user is being set correctly
-
   try {
     const { fileKey } = req.query;
 
@@ -106,8 +99,6 @@ const getUserFileContent = async (req, res) => {
     };
     const fileData = await s3.getObject(params).promise();
 
-    console.log("Fetched file data:", fileData);
-
     const fileContent = fileData.Body.toString("utf-8");
 
     res.setHeader("Content-Type", "application/json");
@@ -118,4 +109,81 @@ const getUserFileContent = async (req, res) => {
   }
 };
 
-module.exports = { getUserTemplates, checkForNewFiles, getUserFileContent };
+const saveUserFileContent = async (req, res) => {
+  try {
+    if (!req.user || !req.user.email) {
+      return res.status(400).json({ error: "User email not found" });
+    }
+
+    const email = req.user.email;
+    const folderName = email.split("@")[0];
+    const { filename, content } = req.body;
+
+    if (!filename || !content) {
+      return res.status(400).json({ error: "Filename and content are required" });
+    }
+
+    const fileKey = `${folderName}/${filename}.js`;
+
+    // Check if file already exists
+    const paramsCheck = { Bucket: BUCKET_NAME, Key: fileKey };
+    try {
+      await s3.headObject(paramsCheck).promise();
+      return res.status(409).json({ error: "File already exists" });
+    } catch (err) {
+      if (err.code !== "NotFound") {
+        console.error("Error checking file existence:", err);
+        return res.status(500).json({ error: "Failed to check file existence" });
+      }
+    }
+
+    // It's better to get rid of it in future and save files in json format instead of js
+    const fileContent = `const obj = \`${JSON.stringify(content, null, 2)}\`;\nexport default obj;`;
+
+    const paramsUpload = {
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      Body: fileContent,
+      ContentType: "application/javascript",
+    };
+
+    await s3.putObject(paramsUpload).promise();
+
+    return res.status(201).json({ message: "File saved successfully" });
+  } catch (error) {
+    console.error("Error saving file to S3:", error);
+    res.status(500).json({ error: "Failed to save file to S3" });
+  }
+};
+
+const deleteUserFile = async (req, res) => {
+  try {
+    const { fileKey } = req.query;
+
+    if (!fileKey) {
+      console.error("Missing fileKey in request");
+      return res.status(400).json({ error: "File key is required" });
+    }
+
+    const userFolder = req.user.email.split("@")[0] + "/";
+    if (!fileKey.startsWith(userFolder)) {
+      console.error("Unauthorized file access attempt:", fileKey);
+      return res.status(403).json({ error: "Access denied: Unauthorized file access" });
+    }
+
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+    };
+    await s3.deleteObject(params).promise();
+
+    console.log("File deleted successfully:", fileKey);
+    res.status(200).json({ message: "File deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    res.status(500).json({ error: "Failed to delete the file" });
+  }
+};
+
+
+module.exports = { getUserTemplates, checkForNewFiles, getUserFileContent, saveUserFileContent, deleteUserFile };
