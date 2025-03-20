@@ -177,7 +177,7 @@ const deleteUserFile = async (req, res) => {
     };
     await s3.deleteObject(params).promise();
 
-    console.log("File deleted successfully:", fileKey);
+    console.log("File deleted successfully:", fileKey); // remove this later
     res.status(200).json({ message: "File deleted successfully" });
   } catch (error) {
     console.error("Error deleting file:", error);

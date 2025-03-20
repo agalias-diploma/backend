@@ -5,6 +5,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+REGION="eu-north-1"
 
 echo -e "${GREEN}Starting deployment process...${NC}"
 
@@ -32,9 +33,9 @@ sudo apt-get install -y nodejs nginx || {
     exit 1
 }
 
-echo -e "${YELLOW}Installing Certbot...${NC}"
-sudo apt-get install -y certbot python3-certbot-nginx || {
-    echo -e "${RED}Failed to install Certbot${NC}"
+echo -e "${YELLOW}Installing AWS CLI...${NC}"
+sudo apt-get install -y awscli || {
+    echo -e "${RED}Failed to install AWS CLI${NC}"
     exit 1
 }
 
@@ -44,9 +45,18 @@ npm install || {
     exit 1
 }
 
-echo -e "${YELLOW}Creating directories if they don't exist...${NC}"
-sudo mkdir -p /etc/nginx/sites-available
-sudo mkdir -p /etc/nginx/sites-enabled
+echo -e "${YELLOW}Retrieving SSL certificates from SSM...${NC}"
+
+# Replace 'YOUR_CERT_ARN' and 'YOUR_PRIVATE_KEY' with the actual SSM parameter names
+CERT_SSL_CHAIN=$(aws ssm get-parameter --name "/certs/stage-agalias" --query "Parameter.Value" --region $REGION --output text --with-decryption)
+PRIVATE_SSL_KEY=$(aws ssm get-parameter --name "/certs/stage-agalias-key" --query "Parameter.Value" --region $REGION --output text --with-decryption)
+
+# Create directories for SSL certificates if they don't exist
+sudo mkdir -p /etc/ssl/api-stage.agalias-project.online/
+
+# Save the retrieved certificates to files
+echo "$CERT_SSL_CHAIN" | sudo tee /etc/ssl/api-stage.agalias-project.online/fullchain.pem > /dev/null
+echo "$PRIVATE_SSL_KEY" | sudo tee /etc/ssl/api-stage.agalias-project.online/privkey.pem > /dev/null
 
 echo -e "${YELLOW}Configuring Nginx...${NC}"
 if [ -f "nginx.conf" ]; then
@@ -68,6 +78,9 @@ else
     exit 1
 fi
 
+echo -e "${YELLOW}Permissions to nginx${NC}"
+sudo chown -R www-data:www-data /etc/ssl/api-stage.agalias-project.online
+
 echo -e "${YELLOW}Testing Nginx configuration...${NC}"
 sudo nginx -t || {
     echo -e "${RED}Nginx configuration test failed${NC}"
@@ -77,18 +90,6 @@ sudo nginx -t || {
 echo -e "${YELLOW}Restarting Nginx...${NC}"
 sudo systemctl restart nginx || {
     echo -e "${RED}Failed to restart Nginx${NC}"
-    exit 1
-}
-
-echo -e "${YELLOW}Installing SSL certificate...${NC}"
-sudo certbot --nginx -d api-stage.agalias-project.online --non-interactive --agree-tos --register-unsafely-without-email || {
-    echo -e "${RED}Failed to install SSL certificate${NC}"
-    exit 1
-}
-
-echo -e "${YELLOW}Setting up certbot auto-renewal...${NC}"
-sudo systemctl enable certbot.timer || {
-    echo -e "${RED}Failed to enable Certbot timer${NC}"
     exit 1
 }
 
@@ -111,4 +112,3 @@ echo -e "${GREEN}Deployment completed successfully!${NC}"
 echo -e "${YELLOW}Checking service status:${NC}"
 pm2 list
 sudo systemctl status nginx
-sudo systemctl status certbot.timer

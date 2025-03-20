@@ -14,7 +14,8 @@ router.get('/s3-check-for-new-files', passport.authenticate('jwt', { session: fa
 // GET user file content
 router.get("/s3-file-content", passport.authenticate("jwt", { session: false }), getUserFileContent);
 
-// POST user file content on S3 bucket
+// POST user file content on S3 bucket. Handle auto-refresh of the files list when new file is saved, 
+// so then we can get rid of s3-check-for-new-files route
 router.post("/s3-save-template", passport.authenticate("jwt", { session: false }), saveUserFileContent);
 
 // POST user file content on S3 bucket
