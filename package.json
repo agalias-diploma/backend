@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start-node": "node ./bin/www",
-    "prestart": "node fetch-secrets.js",
+    "start-dev": "nodemon --exec env-cmd -f .env.dev ./bin/www",
     "start": "nodemon ./bin/www",
     "test": "cross-env NODE_ENV=test jest",
     "test:cover": "cross-env NODE_ENV=test jest --coverage",
@@ -36,6 +36,7 @@
     "@eslint/js": "^9.19.0",
     "cross-env": "^7.0.3",
     "debug": "~2.6.9",
+    "env-cmd": "^10.1.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.6.0",
