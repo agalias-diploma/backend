@@ -1,5 +1,5 @@
 # Use Node.js LTS as base image
-FROM node:20
+FROM node:20-slim
 
 # Set working directory
 WORKDIR /app
@@ -8,8 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Install AWS CLI
+RUN apk add --no-cache aws-cli # or apt if Debian-based
+
 # Copy the rest of the app
 COPY . .
+
+COPY entrypoint-dev.sh /entrypoint-dev.sh
+RUN chmod +x /entrypoint-dev.sh
 
 # Expose port
 EXPOSE 3000

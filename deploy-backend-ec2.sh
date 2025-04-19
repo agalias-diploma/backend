@@ -39,6 +39,12 @@ sudo apt-get install -y awscli || {
     exit 1
 }
 
+echo -e "${YELLOW}Creating .env file...${NC}"
+touch .env
+
+echo -e "${YELLOW}Retrieving all other sercets used by backend from SSM...${NC}"
+./entrypoint-stage.sh
+
 echo -e "${YELLOW}Installing dependencies...${NC}"
 npm install || {
     echo -e "${RED}Failed to install npm dependencies${NC}"
@@ -47,7 +53,7 @@ npm install || {
 
 echo -e "${YELLOW}Retrieving SSL certificates from SSM...${NC}"
 
-# Replace 'YOUR_CERT_ARN' and 'YOUR_PRIVATE_KEY' with the actual SSM parameter names
+# Retrieve SSL certificates from AWS SSM Parameter Store
 CERT_SSL_CHAIN=$(aws ssm get-parameter --name "/certs/stage-agalias" --query "Parameter.Value" --region $REGION --output text --with-decryption)
 PRIVATE_SSL_KEY=$(aws ssm get-parameter --name "/certs/stage-agalias-key" --query "Parameter.Value" --region $REGION --output text --with-decryption)
 
