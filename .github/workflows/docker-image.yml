@@ -33,4 +33,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Backend Docker image
-      run: docker build . --file Dockerfile.dev --tag agalias-project-backend:$(date +%s)
+      run: docker build . --file Dockerfile --tag agalias-project-backend:$(date +%s)
