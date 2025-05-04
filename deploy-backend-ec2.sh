@@ -116,5 +116,6 @@ pm2 start npm --name "backend" -- start || {
 
 echo -e "${GREEN}Deployment completed successfully!${NC}"
 echo -e "${YELLOW}Checking service status:${NC}"
-pm2 list
-sudo systemctl status nginx
+pm2 list | cat
+sudo systemctl is-active nginx && echo "Nginx is running successfully"
+echo -e "${GREEN}Deployment process complete. Exiting...${NC}"
