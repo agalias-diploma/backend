@@ -32,5 +32,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Determine Docker Tag
+      id: docker_tag
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "TAG=pr-$(date +%Y%m%d)" >> $GITHUB_ENV
+        else
+          echo "TAG=latest" >> $GITHUB_ENV
+        fi
+
     - name: Build the Backend Docker image
-      run: docker build . --file Dockerfile --tag agalias-project-backend:$(date +%s)
+      run: docker build . --file Dockerfile --tag agalias-project-backend:$TAG
