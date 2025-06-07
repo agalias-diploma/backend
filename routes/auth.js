@@ -2,8 +2,6 @@ const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 
-const AuthUser = require('../models/auth');
-
 const router = express.Router();
 
 router.get('/auth', (req, res) => {

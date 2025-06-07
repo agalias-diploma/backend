@@ -9,8 +9,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cover": "cross-env NODE_ENV=test jest --coverage",
-    "lint": "eslint --ext .js",
-    "lint:fix": "eslint ./ --fix --ext .js"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:verbose": "eslint . && echo '✅ No linting errors found!'"
   },
   "jest": {
     "testEnvironment": "node"
